@@ -1,17 +1,20 @@
-package commands
+package parser
 
-import "errors"
+import (
+	"errors"
+	"regexp"
+)
 
 type Command struct {
 	Text string
 }
 
-symbol := regexp.MustCompile(`^@(\S+)`)    // @sum
-label := regexp.MustCompile(`^\((\S+)\)$`) // (LOOP)
-dest := regexp.MustCompile(`^(\S+)=`)      // D=D-M
-destcomp := regexp.MustCompile(`=(\S+)`)   // D=D-M
-compjump := regexp.MustCompile(`(\S+);`)   // D;JGT
-jump := regexp.MustCompile(`;(\S+)`)       // D;JGT
+var symbol = regexp.MustCompile(`^@(\S+)`)    // @sum
+var label = regexp.MustCompile(`^\((\S+)\)$`) // (LOOP)
+var dest = regexp.MustCompile(`^(\S+)=`)      // D=D-M
+var destcomp = regexp.MustCompile(`=(\S+)`)   // D=D-M
+var compjump = regexp.MustCompile(`(\S+);`)   // D;JGT
+var jump = regexp.MustCompile(`;(\S+)`)       // D;JGT
 
 func NewCommand(text string) *Command {
 	return &Command{Text: text}
@@ -26,10 +29,9 @@ func (c *Command) Type() (string, error) {
 	case label.MatchString(c.Text):
 		return "L_Command", nil
 	default:
-		return nil, errors.New("unrecognized command type")
+		return "", errors.New("unrecognized command type")
 	}
 }
-
 
 func (c *Command) Symbol() (string, error) {
 	switch {
@@ -40,7 +42,7 @@ func (c *Command) Symbol() (string, error) {
 		result := label.FindStringSubmatch(c.Text)
 		return result[len(result)-1], nil
 	default:
-		return nil, errors.New("command has no Symbol")
+		return "", errors.New("command has no Symbol")
 	}
 }
 
@@ -50,7 +52,7 @@ func (c *Command) Dest() (string, error) {
 		result := dest.FindStringSubmatch(c.Text)
 		return result[len(result)-1], nil
 	default:
-		return nil, errors.New("command has no Dest")
+		return "", errors.New("command has no Dest")
 	}
 
 }
@@ -64,7 +66,7 @@ func (c *Command) Comp() (string, error) {
 		result := compjump.FindStringSubmatch(c.Text)
 		return result[len(result)-1], nil
 	default:
-		return nil, errors.New("command has no Comp")
+		return "", errors.New("command has no Comp")
 	}
 }
 
@@ -74,7 +76,6 @@ func (c *Command) Jump() (string, error) {
 		result := jump.FindStringSubmatch(c.Text)
 		return result[len(result)-1], nil
 	default:
-		return nil, errors.New("command has no Jump")
+		return "", errors.New("command has no Jump")
 	}
 }
-

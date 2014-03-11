@@ -2,7 +2,6 @@ package parser
 
 import (
 	"bufio"
-	"github.com/johnnymo87/assembler/commands"
 	"os"
 )
 
@@ -25,7 +24,7 @@ func NewScanner(filename string) *Scanner {
 	file, err := os.Open(filename)
 	check(err)
 	defer file.Close()
-	return &Parser{scanner: bufio.NewScanner(file)}
+	return &Scanner{scanner: bufio.NewScanner(file)}
 }
 
 func (s *Scanner) HasMoreCommands() bool {
@@ -33,7 +32,7 @@ func (s *Scanner) HasMoreCommands() bool {
 }
 
 func (s *Scanner) ReadCommand() *Command {
-	return commands.NewCommand(s.scanner.Text())
+	return NewCommand(s.scanner.Text())
 }
 
 //func NewParser(filename string) *Parser {
