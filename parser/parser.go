@@ -2,49 +2,91 @@ package parser
 
 import (
 	"bufio"
+	"errors"
 	"os"
+	"regexp"
 )
 
-func check(e error) {
-	if e != nil {
-		panic(e)
+func NewScanner(filename string) (*bufio.Scanner, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	return bufio.NewScanner(file), nil
+}
+
+type Command struct {
+	Text string
+}
+
+func NewCommand(text string) *Command {
+	return &Command{Text: text}
+}
+
+var symbol = regexp.MustCompile(`^@(\S+)`)    // @sum
+var label = regexp.MustCompile(`^\((\S+)\)$`) // (LOOP)
+var dest = regexp.MustCompile(`^(\S+)=`)      // D=D-M
+var destcomp = regexp.MustCompile(`=(\S+)`)   // D=D-M
+var compjump = regexp.MustCompile(`(\S+);`)   // D;JGT
+var jump = regexp.MustCompile(`;(\S+)`)       // D;JGT
+
+func (c *Command) Type() (string, error) {
+	switch {
+	case symbol.MatchString(c.Text):
+		return "A_Command", nil
+	case destcomp.MatchString(c.Text) || compjump.MatchString(c.Text):
+		return "C_Command", nil
+	case label.MatchString(c.Text):
+		return "L_Command", nil
+	default:
+		return "", errors.New("unrecognized command type")
 	}
 }
 
-type Parser interface {
-	HasMoreCommands() bool
-	ReadCommand() *Command
+func (c *Command) Symbol() (string, error) {
+	switch {
+	case symbol.MatchString(c.Text):
+		result := symbol.FindStringSubmatch(c.Text)
+		return result[len(result)-1], nil
+	case label.MatchString(c.Text):
+		result := label.FindStringSubmatch(c.Text)
+		return result[len(result)-1], nil
+	default:
+		return "", errors.New("command has no Symbol")
+	}
 }
 
-type Scanner struct {
-	scanner *bufio.Scanner
+func (c *Command) Dest() (string, error) {
+	switch {
+	case dest.MatchString(c.Text):
+		result := dest.FindStringSubmatch(c.Text)
+		return result[len(result)-1], nil
+	default:
+		return "", errors.New("command has no Dest")
+	}
+
 }
 
-func NewScanner(filename string) *Scanner {
-	file, err := os.Open(filename)
-	check(err)
-	defer file.Close()
-	return &Scanner{scanner: bufio.NewScanner(file)}
+func (c *Command) Comp() (string, error) {
+	switch {
+	case destcomp.MatchString(c.Text):
+		result := destcomp.FindStringSubmatch(c.Text)
+		return result[len(result)-1], nil
+	case compjump.MatchString(c.Text):
+		result := compjump.FindStringSubmatch(c.Text)
+		return result[len(result)-1], nil
+	default:
+		return "", errors.New("command has no Comp")
+	}
 }
 
-func (s *Scanner) HasMoreCommands() bool {
-	return s.scanner.Scan()
+func (c *Command) Jump() (string, error) {
+	switch {
+	case jump.MatchString(c.Text):
+		result := jump.FindStringSubmatch(c.Text)
+		return result[len(result)-1], nil
+	default:
+		return "", errors.New("command has no Jump")
+	}
 }
-
-func (s *Scanner) ReadCommand() *Command {
-	return NewCommand(s.scanner.Text())
-}
-
-//func NewParser(filename string) *Parser {
-//	file, err := os.Open(filename)
-//	check(err)
-//	defer file.Close()
-//	//var lines []string
-//	//for scanner.Scan() {
-//	//	lines = append(lines, scanner.Text())
-//	//}
-//	//check(scanner.Err())
-//	return &Parser{scanner: bufio.NewScanner(file)}
-//}
-
-//func hasMoreCommands() bool {
