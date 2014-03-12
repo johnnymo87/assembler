@@ -8,6 +8,9 @@ import (
 
 var _ = Describe("Parser", func() {
 	var lines = Parse("MaxL.asm")
+	It("parses 16 commands from MaxL.asm", func() {
+		Expect(len(lines)).To(Equal(16))
+	})
 	It("Only A & C commands are collected", func() {
 		expectation := []string{"A_Command", "C_Command"}
 		for _, command := range lines {
