@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	. "github.com/johnnymo87/assembler/parser"
+	. "github.com/johnnymo87/go-assembler/parser"
 )
 
 func main() {
