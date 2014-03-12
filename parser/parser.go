@@ -7,13 +7,29 @@ import (
 	"regexp"
 )
 
-func NewScanner(filename string) (*bufio.Scanner, error) {
+func Parse(filename string) []*Command {
 	file, err := os.Open(filename)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 	defer file.Close()
-	return bufio.NewScanner(file), nil
+	var lines []*Command
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		com := NewCommand(scanner.Text())
+		typ, _ := com.Type()
+		switch typ {
+		case "A_Command":
+			lines = append(lines, NewCommand(scanner.Text()))
+		case "C_Command":
+			lines = append(lines, NewCommand(scanner.Text()))
+		case "L_Command":
+			break
+		default:
+			break
+		}
+	}
+	return lines
 }
 
 type Command struct {

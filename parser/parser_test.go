@@ -1,23 +1,18 @@
 package parser_test
 
 import (
-	"bufio"
 	. "github.com/johnnymo87/assembler/parser"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"os"
 )
 
 var _ = Describe("Parser", func() {
-	BeforeEach(func() {
-		scanner, _ := NewScanner("dummy_file.txt")
-		var lines []*Command
-		for scanner.Scan() {
-			lines = append(lines, NewCommand(scanner.Text()))
+	It("Only A & C commands are collected", func() {
+		lines := Parse("MaxL.asm")
+		expectation := []string{"A_Command", "C_Command"}
+		for _, command := range lines {
+			comm, _ := command.Type()
+			Expect(expectation).To(ContainElement(comm))
 		}
-	})
-	It("Parsed Lines are collected in a *Command slice", func() {
-		scanner := NewScanner("dummy_file.txt")
-		Expect(p.Lines).To(Equal([]string{"0 1", "a"}))
 	})
 })
