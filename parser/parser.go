@@ -7,22 +7,22 @@ import (
 	"regexp"
 )
 
-func Parse(filename string) []*Command {
+func Parse(filename string) []Command {
 	file, err := os.Open(filename)
 	if err != nil {
 		panic(err)
 	}
 	defer file.Close()
-	var lines []*Command
+	var lines []Command
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		com := NewCommand(scanner.Text())
-		typ, _ := com.Type()
+		command := Command(scanner.Text())
+		typ, _ := command.Type()
 		switch typ {
 		case "A_Command":
-			lines = append(lines, NewCommand(scanner.Text()))
+			lines = append(lines, command)
 		case "C_Command":
-			lines = append(lines, NewCommand(scanner.Text()))
+			lines = append(lines, command)
 		case "L_Command":
 			break
 		default:
@@ -32,14 +32,6 @@ func Parse(filename string) []*Command {
 	return lines
 }
 
-type Command struct {
-	Text string
-}
-
-func NewCommand(text string) *Command {
-	return &Command{Text: text}
-}
-
 var symbol = regexp.MustCompile(`^@(\S+)`)    // @sum
 var label = regexp.MustCompile(`^\((\S+)\)$`) // (LOOP)
 var dest = regexp.MustCompile(`^(\S+)=`)      // D=D-M
@@ -47,36 +39,41 @@ var destcomp = regexp.MustCompile(`=(\S+)`)   // D=D-M
 var compjump = regexp.MustCompile(`(\S+);`)   // D;JGT
 var jump = regexp.MustCompile(`;(\S+)`)       // D;JGT
 
-func (c *Command) Type() (string, error) {
+type Command string
+
+func (c Command) Type() (string, error) {
+	command := string(c)
 	switch {
-	case symbol.MatchString(c.Text):
+	case symbol.MatchString(command):
 		return "A_Command", nil
-	case destcomp.MatchString(c.Text) || compjump.MatchString(c.Text):
+	case destcomp.MatchString(command) || compjump.MatchString(command):
 		return "C_Command", nil
-	case label.MatchString(c.Text):
+	case label.MatchString(command):
 		return "L_Command", nil
 	default:
 		return "", errors.New("unrecognized command type")
 	}
 }
 
-func (c *Command) Symbol() (string, error) {
+func (c Command) Symbol() (string, error) {
+	command := string(c)
 	switch {
-	case symbol.MatchString(c.Text):
-		result := symbol.FindStringSubmatch(c.Text)
+	case symbol.MatchString(command):
+		result := symbol.FindStringSubmatch(command)
 		return result[len(result)-1], nil
-	case label.MatchString(c.Text):
-		result := label.FindStringSubmatch(c.Text)
+	case label.MatchString(command):
+		result := label.FindStringSubmatch(command)
 		return result[len(result)-1], nil
 	default:
 		return "", errors.New("command has no Symbol")
 	}
 }
 
-func (c *Command) Dest() (string, error) {
+func (c Command) Dest() (string, error) {
+	command := string(c)
 	switch {
-	case dest.MatchString(c.Text):
-		result := dest.FindStringSubmatch(c.Text)
+	case dest.MatchString(command):
+		result := dest.FindStringSubmatch(command)
 		return result[len(result)-1], nil
 	default:
 		return "", errors.New("command has no Dest")
@@ -84,23 +81,25 @@ func (c *Command) Dest() (string, error) {
 
 }
 
-func (c *Command) Comp() (string, error) {
+func (c Command) Comp() (string, error) {
+	command := string(c)
 	switch {
-	case destcomp.MatchString(c.Text):
-		result := destcomp.FindStringSubmatch(c.Text)
+	case destcomp.MatchString(command):
+		result := destcomp.FindStringSubmatch(command)
 		return result[len(result)-1], nil
-	case compjump.MatchString(c.Text):
-		result := compjump.FindStringSubmatch(c.Text)
+	case compjump.MatchString(command):
+		result := compjump.FindStringSubmatch(command)
 		return result[len(result)-1], nil
 	default:
 		return "", errors.New("command has no Comp")
 	}
 }
 
-func (c *Command) Jump() (string, error) {
+func (c Command) Jump() (string, error) {
+	command := string(c)
 	switch {
-	case jump.MatchString(c.Text):
-		result := jump.FindStringSubmatch(c.Text)
+	case jump.MatchString(command):
+		result := jump.FindStringSubmatch(command)
 		return result[len(result)-1], nil
 	default:
 		return "", errors.New("command has no Jump")
