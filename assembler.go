@@ -2,10 +2,12 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	. "github.com/johnnymo87/assembler/code"
 	. "github.com/johnnymo87/assembler/parser"
 	"os"
+	"regexp"
 )
 
 // writeLines writes the lines to the given file.
@@ -51,7 +53,24 @@ func toBinary(lines []Command) []string {
 	return bLines
 }
 
+func name(asm string) string {
+	regex := regexp.MustCompile(`(\S+)\.asm`)
+	if !regex.MatchString(asm) {
+		fmt.Println("file type is not of *.asm\n")
+		panic(asm)
+	}
+	path := regex.FindStringSubmatch(asm)
+	return path[len(path)-1]
+}
+
 func main() {
-	lines := Parse("parser/MaxL.asm")
-	fmt.Printf("%#v", lines)
+	filename := flag.String("filename", "", "a string *.asm")
+	flag.Parse()
+	lines := Parse(*filename)
+	bLines := toBinary(lines)
+	path := name(*filename)
+	err := writeLines(bLines, path)
+	if err != nil {
+		panic(err)
+	}
 }
