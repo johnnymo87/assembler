@@ -3,6 +3,7 @@ package parser
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"os"
 	"regexp"
 )
