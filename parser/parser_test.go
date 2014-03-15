@@ -6,17 +6,43 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("ReadLines()", func() {
+var _ = Describe("IO", func() {
 	var lines = ReadLines("MaxL.asm")
-	It("parses 16 commands from MaxL.asm", func() {
+	It("ReadLines() parses 16 commands from MaxL.asm", func() {
 		Expect(len(lines)).To(Equal(16))
 	})
-	It("Only A & C commands are collected", func() {
+	It("ReadLines() only A & C commands are collected", func() {
 		expectation := []string{"A_Command", "C_Command"}
 		for _, command := range lines {
 			comm, _ := command.Type()
 			Expect(expectation).To(ContainElement(comm))
 		}
+	})
+	var bLines = []string{"00", "01", "10", "11"}
+	It("WriteLines()", func() {
+		err := WriteLines(bLines, "test/dummy_file")
+		Expect(err).NotTo(HaveOccurred())
+	})
+})
+
+var _ = Describe("Type()", func() {
+	It("A_Command", func() {
+		c, _ := Command("@sum").Type()
+		Expect(c).To(Equal("A_Command"))
+	})
+	It("C_Command", func() {
+		c1, _ := Command("D=D-M").Type()
+		c2, _ := Command("D;JGT").Type()
+		Expect(c1).To(Equal("C_Command"))
+		Expect(c2).To(Equal("C_Command"))
+	})
+	It("L_Command", func() {
+		c, _ := Command("(LOOP)").Type()
+		Expect(c).To(Equal("L_Command"))
+	})
+	It("error", func() {
+		_, err := Command("lulu").Type()
+		Expect(err).To(HaveOccurred())
 	})
 })
 
