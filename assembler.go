@@ -3,8 +3,8 @@ package main
 import (
 	"bufio"
 	"fmt"
-	. "github.com/johnnymo87/go-assembler/code"
-	. "github.com/johnnymo87/go-assembler/parser"
+	. "github.com/johnnymo87/assembler/code"
+	. "github.com/johnnymo87/assembler/parser"
 	"os"
 )
 
