@@ -7,7 +7,20 @@ import (
 	"regexp"
 )
 
-func Parse(filename string) []Command {
+var path string
+
+func extractPath(asm string) string {
+	regex := regexp.MustCompile(`(\S+)\.asm`)
+	if !regex.MatchString(asm) {
+		fmt.Println("file type is not of *.asm\n")
+		panic(asm)
+	}
+	path := regex.FindStringSubmatch(asm)
+	return path[len(path)-1]
+}
+
+func ReadLines(filename string) []Command {
+	path = extractPath(filename)
 	file, err := os.Open(filename)
 	if err != nil {
 		panic(err)
@@ -30,6 +43,20 @@ func Parse(filename string) []Command {
 		}
 	}
 	return lines
+}
+
+func WriteLines(lines []string, path string) error {
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	w := bufio.NewWriter(file)
+	for _, line := range lines {
+		fmt.Fprintln(w, line)
+	}
+	return w.Flush()
 }
 
 var symbol = regexp.MustCompile(`^@(\S+)`)    // @sum
