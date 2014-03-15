@@ -69,14 +69,14 @@ func (c Command) Symbol() (string, error) {
 	}
 }
 
-func (c Command) Dest() (string, error) {
+func (c Command) Dest() string {
 	command := string(c)
 	switch {
 	case dest.MatchString(command):
 		result := dest.FindStringSubmatch(command)
-		return result[len(result)-1], nil
+		return result[len(result)-1]
 	default:
-		return "", errors.New("command has no Dest")
+		return "null"
 	}
 
 }
@@ -95,13 +95,13 @@ func (c Command) Comp() (string, error) {
 	}
 }
 
-func (c Command) Jump() (string, error) {
+func (c Command) Jump() string {
 	command := string(c)
 	switch {
 	case jump.MatchString(command):
 		result := jump.FindStringSubmatch(command)
-		return result[len(result)-1], nil
+		return result[len(result)-1]
 	default:
-		return "", errors.New("command has no Jump")
+		return "null"
 	}
 }
