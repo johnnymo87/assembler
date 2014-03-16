@@ -7,7 +7,7 @@ import (
 )
 
 var _ = Describe("IO", func() {
-	var lines = ReadLines("MaxL.asm")
+	var lines = ReadLines("fixtures/MaxL.asm")
 	It("ReadLines() parses 16 commands from MaxL.asm", func() {
 		Expect(len(lines)).To(Equal(16))
 	})
@@ -18,11 +18,11 @@ var _ = Describe("IO", func() {
 			Expect(expectation).To(ContainElement(comm))
 		}
 	})
-	//var bLines = []string{"00", "01", "10", "11"}
-	//It("WriteLines()", func() {
-	//	err := WriteLines(bLines, "test/dummy_file")
-	//	Expect(err).NotTo(HaveOccurred())
-	//})
+	var bLines = []string{"00", "01", "10", "11"}
+	It("WriteLines()", func() {
+		err := WriteLines(bLines)
+		Expect(err).NotTo(HaveOccurred())
+	})
 })
 
 var _ = Describe("Type()", func() {

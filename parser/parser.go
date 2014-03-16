@@ -13,7 +13,7 @@ var path string
 func extractPath(asm string) string {
 	regex := regexp.MustCompile(`(\S+)\.asm`)
 	if !regex.MatchString(asm) {
-		fmt.Println("file type is not of *.asm\n")
+		fmt.Printf("file '%v' is not of type *.asm\n", asm)
 		panic(asm)
 	}
 	path := regex.FindStringSubmatch(asm)
@@ -21,7 +21,7 @@ func extractPath(asm string) string {
 }
 
 func ReadLines(filename string) []Command {
-	path = extractPath(filename)
+	path = extractPath(filename) + ".hack"
 	file, err := os.Open(filename)
 	if err != nil {
 		panic(err)
@@ -47,6 +47,11 @@ func ReadLines(filename string) []Command {
 }
 
 func WriteLines(lines []string) error {
+	// ".hack" is len 5
+	if len(path) <= 5 {
+		fmt.Printf("path '%v' does not seem correct")
+		panic(path)
+	}
 	file, err := os.Create(path)
 	if err != nil {
 		return err
