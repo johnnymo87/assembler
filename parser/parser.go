@@ -46,7 +46,7 @@ func ReadLines(filename string) []Command {
 	return lines
 }
 
-func WriteLines(lines []string, path string) error {
+func WriteLines(lines []string) error {
 	file, err := os.Create(path)
 	if err != nil {
 		return err

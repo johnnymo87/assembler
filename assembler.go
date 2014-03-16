@@ -10,8 +10,8 @@ func main() {
 	filename := flag.String("filename", "", "a string *.asm")
 	flag.Parse()
 	lines := ReadLines(*filename)
-	bLines := toBinary(lines)
-	err := writeLines(bLines, path)
+	bLines := ToBinary(lines)
+	err := WriteLines(bLines)
 	if err != nil {
 		panic(err)
 	}
