@@ -145,6 +145,7 @@ func ToBinary(lines []Command) []string {
 		case "C_Command":
 			bLines = append(bLines, C_Binary(command))
 		default:
+			fmt.Printf("'%v' is not an A or C command, cannot convert to binary")
 			panic(command)
 		}
 	}

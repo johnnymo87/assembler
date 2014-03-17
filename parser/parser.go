@@ -73,8 +73,10 @@ func ReadLines(filename string) []Command {
 		//fmt.Println(string(command))
 		typ, err := command.Type()
 		if err == nil {
-			table[string(command)] = counter
-			if typ != "L_Command" {
+			if typ == "L_Command" {
+				sym, _ := command.Symbol()
+				table[sym] = counter
+			} else {
 				counter += 1
 			}
 			if typ == "A_Command" {
@@ -89,7 +91,7 @@ func ReadLines(filename string) []Command {
 					table[txt] = addr
 					addr += 1
 				}
-			} else {
+			} else if typ == "C_Command" {
 				lines = append(lines, command)
 			}
 		}
