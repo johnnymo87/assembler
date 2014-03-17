@@ -43,6 +43,10 @@ func ReadLines(filename string) []Command {
 			break
 		}
 	}
+	if len(lines) == 0 {
+		fmt.Printf("failed to read any lines from %v,")
+		panic(lines)
+	}
 	return lines
 }
 
