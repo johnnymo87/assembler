@@ -6,7 +6,34 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strconv"
 )
+
+var table = map[string]int{
+	"SP":     0,
+	"LCL":    1,
+	"ARG":    2,
+	"THIS":   3,
+	"THAT":   4,
+	"R0":     0,
+	"R1":     1,
+	"R2":     2,
+	"R3":     3,
+	"R4":     4,
+	"R5":     5,
+	"R6":     6,
+	"R7":     7,
+	"R8":     8,
+	"R9":     9,
+	"R10":    10,
+	"R11":    11,
+	"R12":    12,
+	"R13":    13,
+	"R14":    14,
+	"R15":    15,
+	"SCREEN": 16384,
+	"KBD":    24576,
+}
 
 var path string
 
@@ -20,6 +47,16 @@ func extractPath(asm string) string {
 	return path[len(path)-1]
 }
 
+//func openScanner(filename string) *bufio.Scanner {
+//	path = extractPath(filename) + ".hack"
+//	file, err := os.Open(filename)
+//	if err != nil {
+//		panic(err)
+//	}
+//	defer file.Close()
+//	return bufio.NewScanner(file)
+//}
+
 func ReadLines(filename string) []Command {
 	path = extractPath(filename) + ".hack"
 	file, err := os.Open(filename)
@@ -29,22 +66,36 @@ func ReadLines(filename string) []Command {
 	defer file.Close()
 	var lines []Command
 	scanner := bufio.NewScanner(file)
+	counter := 0
+	addr := 16
 	for scanner.Scan() {
 		command := Command(scanner.Text())
-		typ, _ := command.Type()
-		switch typ {
-		case "A_Command":
-			lines = append(lines, command)
-		case "C_Command":
-			lines = append(lines, command)
-		case "L_Command":
-			break
-		default:
-			break
+		//fmt.Println(string(command))
+		typ, err := command.Type()
+		if err == nil {
+			table[string(command)] = counter
+			if typ != "L_Command" {
+				counter += 1
+			}
+			if typ == "A_Command" {
+				txt, _ := command.Symbol()
+				value, present := table[txt]
+				if present == true {
+					newtxt := "@" + strconv.Itoa(value)
+					lines = append(lines, Command(newtxt))
+				} else {
+					newtxt := "@" + strconv.Itoa(addr)
+					lines = append(lines, Command(newtxt))
+					table[txt] = addr
+					addr += 1
+				}
+			} else {
+				lines = append(lines, command)
+			}
 		}
 	}
-	if len(lines) == 0 {
-		fmt.Printf("failed to read any lines from %v,")
+	if counter == 0 {
+		fmt.Printf("failed to read any lines from %v\n")
 		panic(lines)
 	}
 	return lines
@@ -53,7 +104,7 @@ func ReadLines(filename string) []Command {
 func WriteLines(lines []string) error {
 	// ".hack" is len 5
 	if len(path) <= 5 {
-		fmt.Printf("path '%v' does not seem correct")
+		fmt.Printf("path '%v' does not seem correct\n")
 		panic(path)
 	}
 	file, err := os.Create(path)
