@@ -64,13 +64,12 @@ func ReadLines(filename string) []Command {
 		panic(err)
 	}
 	defer file.Close()
-	var lines []Command
 	scanner := bufio.NewScanner(file)
-	counter := 0
-	addr := 16
+	var lines []Command
+	counter, addr := 0, 16
 	for scanner.Scan() {
-		command := Command(scanner.Text())
-		//fmt.Println(string(command))
+		safe := comment.ReplaceAllString(scanner.Text(), "")
+		command := Command(safe)
 		typ, err := command.Type()
 		if err == nil {
 			if typ == "L_Command" {
@@ -78,20 +77,6 @@ func ReadLines(filename string) []Command {
 				table[sym] = counter
 			} else {
 				counter += 1
-			}
-			if typ == "A_Command" {
-				txt, _ := command.Symbol()
-				value, present := table[txt]
-				if present == true {
-					newtxt := "@" + strconv.Itoa(value)
-					lines = append(lines, Command(newtxt))
-				} else {
-					newtxt := "@" + strconv.Itoa(addr)
-					lines = append(lines, Command(newtxt))
-					table[txt] = addr
-					addr += 1
-				}
-			} else if typ == "C_Command" {
 				lines = append(lines, command)
 			}
 		}
@@ -100,7 +85,34 @@ func ReadLines(filename string) []Command {
 		fmt.Printf("failed to read any lines from %v\n")
 		panic(lines)
 	}
-	return lines
+	var newlines []Command
+	for _, command := range lines {
+		typ, _ := command.Type()
+		switch typ {
+		case "A_Command":
+			if digit.MatchString(string(command)) == false {
+				sym, _ := command.Symbol()
+				value, present := table[sym]
+				if present == true {
+					newsym := "@" + strconv.Itoa(value)
+					newlines = append(newlines, Command(newsym))
+				} else {
+					table[sym] = addr
+					newsym := "@" + strconv.Itoa(addr)
+					addr += 1
+					newlines = append(newlines, Command(newsym))
+				}
+			} else {
+				newlines = append(newlines, command)
+			}
+		case "C_Command":
+			newlines = append(newlines, command)
+		default:
+			fmt.Println("How did '%v' get in here?\n", command)
+			panic(command)
+		}
+	}
+	return newlines
 }
 
 func WriteLines(lines []string) error {
@@ -122,12 +134,14 @@ func WriteLines(lines []string) error {
 	return w.Flush()
 }
 
-var symbol = regexp.MustCompile(`^@(\S+)`)    // @sum
-var label = regexp.MustCompile(`^\((\S+)\)$`) // (LOOP)
-var dest = regexp.MustCompile(`^(\S+)=`)      // D=D-M
-var destcomp = regexp.MustCompile(`=(\S+)`)   // D=D-M
-var compjump = regexp.MustCompile(`(\S+);`)   // D;JGT
-var jump = regexp.MustCompile(`;(\S+)`)       // D;JGT
+var comment = regexp.MustCompile(`//(.*)$`)
+var digit = regexp.MustCompile(`@(\d+)`)     // @3
+var symbol = regexp.MustCompile(`@(\S+)`)    // @sum
+var label = regexp.MustCompile(`\((\S+)\)$`) // (LOOP)
+var dest = regexp.MustCompile(`(\S+)=`)      // D=D-M
+var destcomp = regexp.MustCompile(`=(\S+)`)  // D=D-M
+var compjump = regexp.MustCompile(`(\S+);`)  // D;JGT
+var jump = regexp.MustCompile(`;(\S+)`)      // D;JGT
 
 type Command string
 
