@@ -9,7 +9,7 @@ import (
 	"strconv"
 )
 
-var table = map[string]int{
+var Table = map[string]int{
 	"SP":     0,
 	"LCL":    1,
 	"ARG":    2,
@@ -47,26 +47,9 @@ func extractPath(asm string) string {
 	return path[len(path)-1]
 }
 
-//func openScanner(filename string) *bufio.Scanner {
-//	path = extractPath(filename) + ".hack"
-//	file, err := os.Open(filename)
-//	if err != nil {
-//		panic(err)
-//	}
-//	defer file.Close()
-//	return bufio.NewScanner(file)
-//}
-
-func ReadLines(filename string) []Command {
-	path = extractPath(filename) + ".hack"
-	file, err := os.Open(filename)
-	if err != nil {
-		panic(err)
-	}
-	defer file.Close()
-	scanner := bufio.NewScanner(file)
+func FirstPass(scanner *bufio.Scanner) []Command {
+	counter := 0
 	var lines []Command
-	counter, addr := 0, 16
 	for scanner.Scan() {
 		safe := comment.ReplaceAllString(scanner.Text(), "")
 		command := Command(safe)
@@ -74,7 +57,7 @@ func ReadLines(filename string) []Command {
 		if err == nil {
 			if typ == "L_Command" {
 				sym, _ := command.Symbol()
-				table[sym] = counter
+				Table[sym] = counter
 			} else {
 				counter += 1
 				lines = append(lines, command)
@@ -85,19 +68,24 @@ func ReadLines(filename string) []Command {
 		fmt.Printf("failed to read any lines from %v\n")
 		panic(lines)
 	}
+	return lines
+}
+
+func SecondPass(lines []Command) []Command {
+	addr := 16
 	var newlines []Command
 	for _, command := range lines {
 		typ, _ := command.Type()
 		switch typ {
 		case "A_Command":
-			if digit.MatchString(string(command)) == false {
+			if digit.MatchString(string(command)) == false { // it's not just a constant like @3
 				sym, _ := command.Symbol()
-				value, present := table[sym]
+				value, present := Table[sym] // is it in the symbol Table?
 				if present == true {
-					newsym := "@" + strconv.Itoa(value)
+					newsym := "@" + strconv.Itoa(value) // if so, input the value
 					newlines = append(newlines, Command(newsym))
 				} else {
-					table[sym] = addr
+					Table[sym] = addr // if not, add it to the Table
 					newsym := "@" + strconv.Itoa(addr)
 					addr += 1
 					newlines = append(newlines, Command(newsym))
@@ -113,6 +101,19 @@ func ReadLines(filename string) []Command {
 		}
 	}
 	return newlines
+}
+
+func ReadLines(filename string) []Command {
+	path = extractPath(filename) + ".hack"
+	file, err := os.Open(filename)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+	//scanner := openScanner(filename)
+	lines := FirstPass(scanner)
+	return SecondPass(lines)
 }
 
 func WriteLines(lines []string) error {

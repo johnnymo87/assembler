@@ -1,9 +1,11 @@
 package parser_test
 
 import (
+	"bufio"
 	. "github.com/johnnymo87/assembler/parser"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"os"
 )
 
 var _ = Describe("IO", func() {
@@ -22,6 +24,25 @@ var _ = Describe("IO", func() {
 	It("WriteLines()", func() {
 		err := WriteLines(bLines)
 		Expect(err).NotTo(HaveOccurred())
+	})
+})
+
+var _ = Describe("Assembler operations", func() {
+	var lines []Command
+	BeforeEach(func() {
+		file, _ := os.Open("fixtures/Rect.asm")
+		scanner := bufio.NewScanner(file)
+		defer file.Close()
+		lines = FirstPass(scanner)
+	})
+	It("FirstPass() loads labels into the symbol table", func() {
+		value := Table["LOOP"]
+		Expect(value).To(Equal(10))
+	})
+	It("SecondPass() resolves variable names into addresses", func() {
+		newlines := SecondPass(lines)
+		Expect(string(newlines[4])).To(Equal("@16"))
+		Expect(string(newlines[8])).To(Equal("@17"))
 	})
 })
 
